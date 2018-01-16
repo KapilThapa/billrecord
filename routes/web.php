@@ -20,5 +20,5 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 
 Route::resource('bill','BillController');
-Route::get('/bill/checkbill/{billno}','BillController@checkbill');
-Route::get('/bill/getBillNo','BillController@getBillNo')->name('bill.billno');
+Route::get('/api/checkbill/{billno}','BillController@checkbill')->name('bill.checkbill');;
+Route::get('/api/getBillNo','BillController@getBillNo')->name('bill.billno');

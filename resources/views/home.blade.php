@@ -34,9 +34,13 @@
                             <div class="form-group">
                                 <label for="bill_no" class="control-label col-md-3">Bill No. :</label>
                                 <div class="col-md-5" :class="{ 'control': true }">
-                                    <input type="number" name="bill_no" data-vv-as="bill no." id="bill_no" v-validate="'required'" :class="{'input': true, 'is-danger input-error': errors.has('bill_no'), 'is-danger input-error': bill_error }" v-model:value="bill_no" v-on:keydown.13="focusOnEnter('#customer_name')" onfocus="this.select()" class="form-control">
+                                    <input type="number" name="bill_no" data-vv-as="bill no." id="bill_no" v-validate="'required'" :class="{'input': true, 'is-danger input-error': errors.has('bill_no'), 'is-danger input-error': bill_error }" v-model:value="bill_no" v-on:keydown.13="focusOnEnter('#customer_name')" onfocus="this.select()" :disabled="bill_no_lock" class="form-control">
                                     <span class="input-helper" v-if="errors.has('bill_no')" class="help is-danger">@{{ errors.first('bill_no') }}</span>
                                     <span class="input-helper" v-if="bill_error">Bill no already exist.</span>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-default" v-if="bill_no_lock" @click="togglelock()"><i class="fa fa-lock"></i></button>
+                                    <button class="btn btn-default" v-else @click="togglelock()"><i class="fa fa-unlock" ></i></button>
                                 </div>
                             </div>
                             <div class="form-group">
@@ -91,6 +95,7 @@
                         </div>
                     </div>
                     <div class="panel-body">
+                        <input type="hidden" v-validate="'required'">
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
@@ -129,160 +134,195 @@
 
 @section('footerscript')
     <script>
-    var app = new Vue({
-        el: '#app1',
-        data:{
-            bill_no:0,
-            bill_error:false,
-            customer_name:'',
-            contact:'',
-            total:0,
-            advance:0,
-            advance_error:false
-        },
-        mounted: function () {
-            this.getBillNo();
-        },
-        methods:{
-
-            focusOnEnter(input){
-                let self=this;
-                if(input == "#customer_name"){
-                    $.ajax({
-                        url: '/bill/checkbill/'+this.bill_no,
-                        type: 'GET',
-                        data: {
-                            bill_no: self.bill_no,
-                            customer_name: self.customer_name,
-                            contact:self.contact,
-                            total: self.total,
-                            advance: self.advance
-                        }
-                    })
-                    .done(function(response) {
-                        if(response == 'true'){
-                            self.bill_error=true;
-                        }else{
-                            self.bill_error=false;
-                            $(input).focus();
-                        }
-                    })
-                    .fail(function() {
-                        console.log("error");
-                    })
-                    .always(function() {
-                        console.log("complete");
-                    });
-                }
-                else if(input == "#total"){
-                    // check length of name
-                    $(input).focus();
-                }
-                else{
-                    $(input).focus();
-                }
+        var app = new Vue({
+            el: '#app1',
+            data:{
+                bill_no:0,
+                bill_no_lock: false,
+                bill_error:false,
+                customer_name:'',
+                contact:'',
+                total:0,
+                advance:0,
+                advance_error:false
             },
-            saveBillDetail(){
-                let self=this;
-                self.$validator.validateAll().then((result) => {
-                    if (result && !self.advance_error) {
+            mounted: function () {
+                this.getBillNo();
+            },
+            methods:{
+                togglelock(){
+                    console.log('click');
+                    if(this.bill_no_lock){
+                        this.bill_no_lock= false;
+                    }else{
+                        this.bill_no_lock= true;
+                    }
+                },
+                focusOnEnter(input){
+                    let self=this;
+                    if(input == "#customer_name"){
                         $.ajax({
-                            url: '/bill',
-                            type: 'POST',
+                            url: '/api/checkbill/'+this.bill_no,
+                            type: 'GET',
                             data: {
                                 bill_no: self.bill_no,
                                 customer_name: self.customer_name,
                                 contact:self.contact,
                                 total: self.total,
                                 advance: self.advance
-                            },
-                            beforeSend: function( xhr ) {
-                                blockThis({
-                                    target: '#app1'
-                                });
-                                xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
                             }
                         })
                         .done(function(response) {
-                            console.log(response);
-                            app1.fetchBills();
+                            if(response == 'true'){
+                                self.bill_error=true;
+                            }else{
+                                self.bill_error=false;
+                                $(input).focus();
+                            }
                         })
-                        .fail(function() {
-                            console.log("error");
+                        .fail(function(response) {
                         })
-                        .always(function() {
-                            unblockThis('#app1');
-                            console.log("complete");
-                        });  
-                    }
-                });
-            },
-            getBillNo(){
-                let self = this;
-                $.ajax({
-                    url: '/bill/getBillNo',
-                    type: 'GET',
-                    beforeSend: function( xhr ) {
-                        blockThis({
-                            target: '#app1'
+                        .always(function(response) {
                         });
                     }
-                })
-                .done(function(response) {
-                    console.log(response);
-                    // self.bill_no = response.billno;
-                })
-                .fail(function() {
-                    console.log("error");
-                })
-                .always(function() {
-                    unblockThis('#app1');
-                    console.log("get bill complete");
-                });
-            }
-        },
-        computed:{
-            due: function(){
-                return this.total-this.advance;
-            }
-        },
-        watch:{
-            advance: function(){
-                if(due<0){
-                    this.advance_error=true;
-                }else{
-                    this.advance_error=false;
+                    else if(input == "#total"){
+                        // check length of name
+                        $(input).focus();
+                    }
+                    else{
+                        $(input).focus();
+                    }
+                },
+                saveBillDetail(){
+                    let self=this;
+                    self.$validator.validateAll().then((result) => {
+                        if (result && !self.advance_error) {
+                            $.ajax({
+                                url: '/bill',
+                                type: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                },
+                                data: {
+                                    bill_no: self.bill_no,
+                                    customer_name: self.customer_name,
+                                    contact:self.contact,
+                                    total: self.total,
+                                    advance: self.advance
+                                },
+                                beforeSend: function( xhr ) {
+                                    blockThis({
+                                        target: '#app1'
+                                    });
+                                    xhr.overrideMimeType( "text/plain; charset=x-user-defined" );
+                                }
+                            })
+                            .done(function(response) {
+                                self.bill_no=0,
+                                self.bill_no_lock= false,
+                                self.bill_error=false,
+                                self.customer_name='',
+                                self.contact='',
+                                self.total=0,
+                                self.advance=0,
+                                self.advance_error=false
+                                blockThis({
+                                    target: '#app1',
+                                    textOnly: true,
+                                    message: 'Saved!'
+                                });
+
+                                app1.fetchBills();
+                                self.getBillNo();
+                            })
+                            .fail(function() {
+
+                            })
+                            .always(function() {
+                                unblockThis('#app1');
+                                console.log("complete");
+                            });  
+                        }
+                    });
+                },
+                getBillNo(){
+                    let self = this;
+                    $.ajax({
+                        url: '/api/getBillNo',
+                        type: 'GET',
+                        beforeSend: function( xhr ) {
+                            blockThis({
+                                target: '#app1'
+                            });
+                        }
+                    })
+                    .done(function(response) {
+                        if(response.newbill == 0){
+                            let last_bill = response.billno;
+                            self.bill_no = last_bill.bill_no + 1;
+                        }else{
+                            self.bill_no=1;
+                        }
+                        self.bill_no_lock = true;
+                        $("#customer_name").focus();
+                    })
+                    .fail(function() {
+                        console.log("error");
+                    })
+                    .always(function() {
+                        unblockThis('#app1');
+                        console.log("get bill complete");
+                    });
+                }
+            },
+            computed:{
+                due: function(){
+                    return this.total-this.advance;
+                }
+            },
+            watch:{
+                advance: function(){
+                    if(this.due<0){
+                        this.advance_error=true;
+                    }else{
+                        this.advance_error=false;
+                    }
                 }
             }
-        }
-    });
-    /* Vue instance for different block */
-    var app1 = new Vue({
-        el: '#app2',
-        data:{
-            bills:[]
-        },
-        mounted: function () {
-            this.fetchBills();
-        },
-        methods:{
-            fetchBills(){
-                let self = this;
-                $.ajax({
-                    url: '/bill',
-                    type: 'GET'
-                })
-                .done(function(response) {
-                    self.bills = response;
-                })
-                .fail(function(error) {
-                    console.log(error);
-                })
-                .always(function() {
-                    console.log("get bills list complete");
-                });
+        });
+        /* Vue instance for different block */
+        var app1 = new Vue({
+            el: '#app2',
+            data:{
+                bills:[]
+            },
+            mounted: function () {
+                this.fetchBills();
+            },
+            methods:{
+                fetchBills(){
+                    let self = this;
+                    $.ajax({
+                        url: '/bill',
+                        type: 'GET',
+                        beforeSend: function( xhr ) {
+                            blockThis({
+                                target: '#app2'
+                            });
+                        }
+                    })
+                    .done(function(response) {
+                        self.bills = response;
+                    })
+                    .fail(function(error) {
+                        console.log(error);
+                    })
+                    .always(function() {
+                        unblockThis('#app2');
+                        console.log("get bills list complete");
+                    });
+                }
             }
-        }
-    });
+        });
     </script>
 @endsection

@@ -108,14 +108,13 @@ class BillController extends Controller
 
     public function getBillNo(){
         $lastbill = Bill::orderBy('id', 'desc')->first();
+        $newbill = 0;
         if (is_null($lastbill)){
             $newbill = 1;
-
-        }else{
-            $newbill = $lastbill+1;
         }
         return response()->json([
-            'billno' => $newbill
+            'billno' => $lastbill,
+            'newbill' => $newbill
         ]);
     }
 }
