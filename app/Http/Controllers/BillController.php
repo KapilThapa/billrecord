@@ -14,7 +14,7 @@ class BillController extends Controller
      */
     public function index()
     {
-        $bills = Bill::all();
+        $bills = Bill::orderby('id','asce')->get();
         return $bills;
     }
 
@@ -115,6 +115,20 @@ class BillController extends Controller
         return response()->json([
             'billno' => $lastbill,
             'newbill' => $newbill
+        ]);
+    }
+
+    public function getbilldetail($billno)
+    {
+        $bill = Bill::where('bill_no',$billno)->first();
+        if(isset($bill)){
+            return response()->json([
+                'status' => 'true',
+                'bill' => $bill
+            ]);
+        }
+        return response()->json([
+            'status' => 'false'
         ]);
     }
 }
