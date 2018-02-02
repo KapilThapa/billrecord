@@ -9,8 +9,8 @@ window._ = require('lodash');
 
 try {
     window.$ = window.jQuery = require('jquery');
-
-    require('bootstrap-sass');
+	var bs = require('bootstrap-sass');
+    var dt = require( 'datatables.net-bs' )();
 } catch (e) {}
 
 /**

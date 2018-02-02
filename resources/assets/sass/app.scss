@@ -4,8 +4,11 @@
 
 // Variables
 @import "variables";
+@import "helpers";
 
 // Bootstrap
 @import "~bootstrap-sass/assets/stylesheets/bootstrap";
+
+@import "~datatables.net-bs/css/dataTables.bootstrap.css";
 
 @import "node_modules/font-awesome/scss/font-awesome.scss";

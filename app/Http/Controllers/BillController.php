@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Bill;
+use Yajra\Datatables\Datatables;
 
 class BillController extends Controller
 {
@@ -14,8 +15,9 @@ class BillController extends Controller
      */
     public function index()
     {
-        $bills = Bill::orderby('id','asce')->get();
-        return $bills;
+        // $bills = Bill::orderby('id','asce')->get();
+        // return $bills;
+        return Datatables::of(Bill::orderby('id','asce')->get())->make(true);
     }
 
     /**
